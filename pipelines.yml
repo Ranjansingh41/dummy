@@ -6,7 +6,7 @@ pipelines:
         stepMode: Bash
         configuration:
           nodePool: static-node-pool   #u16dynamic
-#         matrix:
+        matrix:
 #           environmentVariables:
 #             - env1: one
 #               env2: two
