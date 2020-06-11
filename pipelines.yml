@@ -1,7 +1,8 @@
 pipelines:
 
   - name: test
-    configuration:  
+    configuration:
+      nodePool: u16dynamic
       runtime:       
         type: image
         image:
