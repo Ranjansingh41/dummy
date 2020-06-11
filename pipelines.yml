@@ -7,9 +7,9 @@ pipelines:
         configuration:
           nodePool: static-node-pool   #u16dynamic
         matrix:
-#           environmentVariables:
-#             - env1: one
-#               env2: two
+          environmentVariables:
+            - env1: one
+              env2: two
 #               env3: three
 #             - env1: changed1
 #               env2: changed2
