@@ -1,5 +1,5 @@
 pipelines:
-  - name: matrix_build
+  - name: matrix_build_test
     steps:
       - name: matrix_test2
         type: Matrix
