@@ -1,7 +1,7 @@
 pipelines:
   - name: matrix_build
     steps:
-      - name: matrix_2
+      - name: matrix_test2
         type: Matrix
         stepMode: Bash
         configuration:
