@@ -1,3 +1,10 @@
+resources:
+  - name: testutl
+    type: GitRepo
+    configuration:
+      gitProvider: ranjan_github
+      path: Ranjansingh41/sample_test 
+
 pipelines:
 
   - name: test_dynamic_node
@@ -15,7 +22,9 @@ pipelines:
         type: Matrix
         stepMode: Bash
         configuration:
-          nodePool: c7dynamic #u16dynamic
+           inputResources: # optional
+            - name: testutl
+#           nodePool: c7dynamic #u16dynamic
         stepletMultipliers:
           environmentVariables:
             - env1: one
@@ -104,4 +113,5 @@ pipelines:
 #                     - 1.12.14        
         execution:
           onExecute:
+            - printenv
             - echo "I am on matrix step"
