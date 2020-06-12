@@ -14,9 +14,9 @@ pipelines:
       - name: matrix_test2
         type: Matrix
         stepMode: Bash
-#         configuration:
-#           nodePool: static-node-pool   #u16dynamic
-        matrix:
+        configuration:
+          nodePool: u18dynamic   #u16dynamic
+        stepletMultipliers:
           environmentVariables:
             - env1: one
               env2: two
