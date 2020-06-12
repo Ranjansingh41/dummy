@@ -1,15 +1,25 @@
 pipelines:
-  - name: matrix_build_test
+
+  - name: test_dynamic_node
+    configuration:  
+      runtime:       
+        type: image
+        image:
+          custom:
+            name: ubuntu
+            tag: latest
+            registry: ranjan_aws
+            region: us-east-1
     steps:
       - name: matrix_test2
         type: Matrix
         stepMode: Bash
 #         configuration:
 #           nodePool: static-node-pool   #u16dynamic
-#         matrix:
-#           environmentVariables:
-#             - env1: one
-#               env2: two
+        matrix:
+          environmentVariables:
+            - env1: one
+              env2: two
 #               env3: three
 #             - env1: changed1
 #               env2: changed2
