@@ -15,7 +15,7 @@ pipelines:
         type: Matrix
         stepMode: Bash
         configuration:
-          nodePool: u18dynamic   #u16dynamic
+          nodePool: c7dynamic #u16dynamic
         stepletMultipliers:
           environmentVariables:
             - env1: one
