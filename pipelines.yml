@@ -1,5 +1,5 @@
 resources:
-  - name: testutl
+  - name: test_matrix
     type: GitRepo
     configuration:
       gitProvider: ranjan_github
@@ -23,7 +23,7 @@ pipelines:
         stepMode: Bash
         configuration:
            inputResources: # optional
-            - name: testutl
+            - name: test_matrix
 #           nodePool: c7dynamic #u16dynamic
         stepletMultipliers:
           environmentVariables:
