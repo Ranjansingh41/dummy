@@ -2,7 +2,7 @@ resources:
   - name: test_matrix
     type: GitRepo
     configuration:
-      gitProvider: ranjan_github
+      gitProvider: github
       path: Ranjansingh41/dummy
 
 pipelines:
