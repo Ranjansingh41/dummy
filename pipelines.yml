@@ -3,7 +3,7 @@ resources:
     type: GitRepo
     configuration:
       gitProvider: ranjan_github
-      path: Ranjansingh41/sample_test 
+      path: Ranjansingh41/dummy
 
 pipelines:
 
