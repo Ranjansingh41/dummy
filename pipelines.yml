@@ -1,75 +1,90 @@
 pipelines:    
-  - name: test_Matrix
-    steps:
-      - name: test
-        type: FanOut
-        configuration:
-          environmentVariables:
-            packerVersion: 1.4.5
-        execution:
-          onExecute:
-            - echo "Installing packer"
-            - 'PK_FILE="packer_${packerVersion}_linux_amd64.zip"'
-            - >-
-              wget -nv
-              https://releases.hashicorp.com/packer/${packerVersion}/$PK_FILE
-            - unzip -o $PK_FILE -d /tmp/packer
-            - rm -f $PK_FILE
-            - ls -l /tmp/packer
-            - sudo chmod +x /tmp/packer/packer
-            - mv /tmp/packer/packer packer
-            - packer -v
-            - echo "Packer succesfully installed"
-      - name: simple_matrix_test
-        type: Matrix
-        stepMode: Bash
-        configuration:
-          inputSteps:
-            - name: test
-        stepletMultipliers:
-          environmentVariables:
-            - provider: aws
-              region: us-east-1
-              subnetId: subnet-2432
-              amiId: ami-asdgvdf
-            - provider: aws
-              region: us-west-1
-              subnetId: subnet-14324
-              amiId: ami-adfget
-            - provider: aws
-              region: us-west-2
-              subnetId: subnet-4235
-              amiId: ami-gdasg
-        execution:
-          onExecute:
-            - echo "Building images /resouces"
-            - >-
-              echo "Processing image $provider / $region / $subnetId / $amiId" >>
-              ${steplet_id}_task
-            - ls -l packer_installer
-            - packer -v
-            - rm -rf /usr/bin/packer
-            - pushd ./packer_installer
-            - mv ./packer /usr/bin/packer
-            - chmod +x /usr/bin/packer
-            - packer -v
-            - popd
-            - 'set_step_var images "packed:$provider:$region:$subnetId:$amiId"'
-            - get_step_var $step_name images
-            - 'cat ${steplet_id}_task'
-      - name: cleanup_step_fanIn
-        type: FanIn
-        configuration:
-          inputSteps:
-            - name: simple_matrix_test
-        execution:
-          onExecute:
-            - echo "Perform cleanup of resources"
-            - ls -l simple_matrix_step
-            - ls -l simple_matrix_step/packer_installer
-            - pushd ./simple_matrix_step
-            - echo "Getting all the resouces created."
-            - 'find . -type f -exec cat {} \;'
-            - echo "Do cleanup"
-            - popd
-            - echo "Cleanup succesfull"
+  name: Pipeline
+  steps:
+    - name: Normal_Step
+      type: Bash
+      configuration:
+        inputResources:
+          - name: self_repo
+      execution:
+        onExecute:
+          - pushd "$res_self_repo_resourcePath/"
+          - save_tests saveTests/empty/temp
+          - save_tests saveTests/correct
+          - echo "Passed"
+          - popd
+    - name: Matrix_Fan_Out_1
+      type: FanOut
+      configuration:
+        inputSteps:
+          - name: Normal_Step
+      execution:
+        onExecute:
+          - sleep 10s
+          - echo "I am on fan out step"
+          - touch fan_out_1.txt
+          - set_step_var fan_out value1
+          - echo "Fan out working" > fan_out_1.txt
+    - name: Matrix_Fan_Out_2
+      type: FanOut
+      configuration:
+        inputSteps:
+          - name: Normal_Step
+      execution:
+        onExecute:
+          - sleep 10s
+          - echo "I am on fan out step "
+          - touch fan_out_2.txt
+          - set_step_var fan_out value1
+          - echo "Fan out working" > fan_out_2.txt
+    - name: matrix_2
+      type: Matrix
+      stepMode: Bash
+      configuration:
+        inputSteps:
+          - name: Matrix_Fan_Out_1
+          - name: Matrix_Fan_Out_2
+        inputResources:
+          - name: self_repo
+      stepletMultipliers:
+        environmentVariables:
+          - env1: one
+            env2: two
+            env3: three
+          - env1: changed1
+            env2: changed2
+          - env1: changed12
+            env2: changed23
+          - env1: one1
+            env2: two2
+            env3: three3
+          - env1: changed14
+            env2: changed25
+          - env1: changed126
+            env2: changed237
+      execution:
+        onExecute:
+          - echo "I am on matrix step"
+          - ls -l ./Matrix_Fan_Out_1
+          - 'touch ${steplet_id}_file'
+          - 'echo "Created file on steplet ${steplet_id}" > ${steplet_id}_file'
+          - >-
+            echo "Envs env1 = $env1 , env2 = $env2 , env3 = $env3" >>
+            ${steplet_id}_file
+          - set_step_var test_key "$(date)"
+          - 'set_step_var addresses "https://www.google.com/${env1}/${steplet_id}"'
+          - get_step_var Matrix_Fan_Out_1 fan_out
+          - ls -l .
+    - name: Matrix_Fan_In
+      type: FanIn
+      configuration:
+        inputSteps:
+          - name: matrix_2
+      execution:
+        onExecute:
+          - echo "Hello World"
+          - ls -l .
+          - ls -l ./matrix_2
+          - ls -l ./matrix_2/Matrix_Fan_Out_1/
+          - get_step_var matrix_2 test_key
+          - get_step_var matrix_2 addresses
