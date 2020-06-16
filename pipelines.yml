@@ -1,74 +1,75 @@
-name: test_Matrix
-steps:
-  - name: test
-    type: FanOut
-    configuration:
-      environmentVariables:
-        packerVersion: 1.4.5
-    execution:
-      onExecute:
-        - echo "Installing packer"
-        - 'PK_FILE="packer_${packerVersion}_linux_amd64.zip"'
-        - >-
-          wget -nv
-          https://releases.hashicorp.com/packer/${packerVersion}/$PK_FILE
-        - unzip -o $PK_FILE -d /tmp/packer
-        - rm -f $PK_FILE
-        - ls -l /tmp/packer
-        - sudo chmod +x /tmp/packer/packer
-        - mv /tmp/packer/packer packer
-        - packer -v
-        - echo "Packer succesfully installed"
-  - name: simple_matrix_test
-    type: Matrix
-    stepMode: Bash
-    configuration:
-      inputSteps:
-        - name: test
-    stepletMultipliers:
-      environmentVariables:
-        - provider: aws
-          region: us-east-1
-          subnetId: subnet-2432
-          amiId: ami-asdgvdf
-        - provider: aws
-          region: us-west-1
-          subnetId: subnet-14324
-          amiId: ami-adfget
-        - provider: aws
-          region: us-west-2
-          subnetId: subnet-4235
-          amiId: ami-gdasg
-    execution:
-      onExecute:
-        - echo "Building images /resouces"
-        - >-
-          echo "Processing image $provider / $region / $subnetId / $amiId" >>
-          ${steplet_id}_task
-        - ls -l packer_installer
-        - packer -v
-        - rm -rf /usr/bin/packer
-        - pushd ./packer_installer
-        - mv ./packer /usr/bin/packer
-        - chmod +x /usr/bin/packer
-        - packer -v
-        - popd
-        - 'set_step_var images "packed:$provider:$region:$subnetId:$amiId"'
-        - get_step_var $step_name images
-        - 'cat ${steplet_id}_task'
-  - name: cleanup_step_fanIn
-    type: FanIn
-    configuration:
-      inputSteps:
-        - name: simple_matrix_test
-    execution:
-      onExecute:
-        - echo "Perform cleanup of resources"
-        - ls -l simple_matrix_step
-        - ls -l simple_matrix_step/packer_installer
-        - pushd ./simple_matrix_step
-        - echo "Getting all the resouces created."
-        - 'find . -type f -exec cat {} \;'
-        - echo "Do cleanup"
-        - popd
-        - echo "Cleanup succesfull"
+pipelines:    
+  - name: test_Matrix
+    steps:
+      - name: test
+        type: FanOut
+        configuration:
+          environmentVariables:
+            packerVersion: 1.4.5
+        execution:
+          onExecute:
+            - echo "Installing packer"
+            - 'PK_FILE="packer_${packerVersion}_linux_amd64.zip"'
+            - >-
+              wget -nv
+              https://releases.hashicorp.com/packer/${packerVersion}/$PK_FILE
+            - unzip -o $PK_FILE -d /tmp/packer
+            - rm -f $PK_FILE
+            - ls -l /tmp/packer
+            - sudo chmod +x /tmp/packer/packer
+            - mv /tmp/packer/packer packer
+            - packer -v
+            - echo "Packer succesfully installed"
+      - name: simple_matrix_test
+        type: Matrix
+        stepMode: Bash
+        configuration:
+          inputSteps:
+            - name: test
+        stepletMultipliers:
+          environmentVariables:
+            - provider: aws
+              region: us-east-1
+              subnetId: subnet-2432
+              amiId: ami-asdgvdf
+            - provider: aws
+              region: us-west-1
+              subnetId: subnet-14324
+              amiId: ami-adfget
+            - provider: aws
+              region: us-west-2
+              subnetId: subnet-4235
+              amiId: ami-gdasg
+        execution:
+          onExecute:
+            - echo "Building images /resouces"
+            - >-
+              echo "Processing image $provider / $region / $subnetId / $amiId" >>
+              ${steplet_id}_task
+            - ls -l packer_installer
+            - packer -v
+            - rm -rf /usr/bin/packer
+            - pushd ./packer_installer
+            - mv ./packer /usr/bin/packer
+            - chmod +x /usr/bin/packer
+            - packer -v
+            - popd
+            - 'set_step_var images "packed:$provider:$region:$subnetId:$amiId"'
+            - get_step_var $step_name images
+            - 'cat ${steplet_id}_task'
+      - name: cleanup_step_fanIn
+        type: FanIn
+        configuration:
+          inputSteps:
+            - name: simple_matrix_test
+        execution:
+          onExecute:
+            - echo "Perform cleanup of resources"
+            - ls -l simple_matrix_step
+            - ls -l simple_matrix_step/packer_installer
+            - pushd ./simple_matrix_step
+            - echo "Getting all the resouces created."
+            - 'find . -type f -exec cat {} \;'
+            - echo "Do cleanup"
+            - popd
+            - echo "Cleanup succesfull"
