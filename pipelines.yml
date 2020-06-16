@@ -1,117 +1,74 @@
-resources:
-  - name: test_matrix
-    type: GitRepo
+name: test_Matrix
+steps:
+  - name: test
+    type: FanOut
     configuration:
-      gitProvider: github
-      path: Ranjansingh41/dummy
-
-pipelines:
-
-  - name: test_dynamic_node
-#     configuration:  
-#       runtime:       
-#         type: image
-#         image:
-#           custom:
-#             name: ubuntu
-#             tag: latest
-#             registry: ranjan_aws
-#             region: us-east-1
-    steps:
-      - name: matrix_test2
-        type: Matrix
-        stepMode: Bash
-        configuration:
-           inputResources: # optional
-            - name: test_matrix
-#           nodePool: c7dynamic #u16dynamic
-        stepletMultipliers:
-          environmentVariables:
-            - env1: one
-              env2: two
-#               env3: three
-#             - env1: changed1
-#               env2: changed2
-#             - key_1: value1
-#               key_2: value2
-#           runtimes:
-#             - type: image
-#               image:
-#                 auto:
-#                   language: java
-#                   versions:
-#                     - 13
-               
-#             - type: image
-#               image:
-#                 auto:
-#                   language: java
-#                   versions:
-#                     - 11
-                    
-#             - type: image
-#               image:
-#                 auto:
-#                   language: java
-#                   versions:
-#                     - 8
-                    
-#             - type: image
-#               image:
-#                 auto:
-#                   language: node
-#                   versions:
-#                     - 8.17.0
-                    
-#             - type: image
-#               image:
-#                 auto:
-#                   language: node
-#                   versions:
-#                     - 10.18.0
-                    
-#             - type: image
-#               image:
-#                 auto:
-#                   language: node
-#                   versions:
-#                     - 12.14.0
-                    
-#             - type: image
-#               image:
-#                 auto:
-#                   language: cpp
-#                   versions:
-#                     - 8.0.0 
-                    
-#             - type: image
-#               image:
-#                 auto:
-#                   language: cpp
-#                   versions:
-#                     - 9.0.0
-                    
-#             - type: image
-#               image:
-#                 auto:
-#                   language: go
-#                   versions:
-#                     - 1.11.13 
-                    
-#             - type: image
-#               image:
-#                 auto:
-#                   language: go
-#                   versions:
-#                     - 1.13.7 
-                    
-#             - type: image
-#               image:
-#                 auto:
-#                   language: go
-#                   versions:
-#                     - 1.12.14        
-        execution:
-          onExecute:
-            - printenv
-            - echo "I am on matrix step"
+      environmentVariables:
+        packerVersion: 1.4.5
+    execution:
+      onExecute:
+        - echo "Installing packer"
+        - 'PK_FILE="packer_${packerVersion}_linux_amd64.zip"'
+        - >-
+          wget -nv
+          https://releases.hashicorp.com/packer/${packerVersion}/$PK_FILE
+        - unzip -o $PK_FILE -d /tmp/packer
+        - rm -f $PK_FILE
+        - ls -l /tmp/packer
+        - sudo chmod +x /tmp/packer/packer
+        - mv /tmp/packer/packer packer
+        - packer -v
+        - echo "Packer succesfully installed"
+  - name: simple_matrix_test
+    type: Matrix
+    stepMode: Bash
+    configuration:
+      inputSteps:
+        - name: test
+    stepletMultipliers:
+      environmentVariables:
+        - provider: aws
+          region: us-east-1
+          subnetId: subnet-2432
+          amiId: ami-asdgvdf
+        - provider: aws
+          region: us-west-1
+          subnetId: subnet-14324
+          amiId: ami-adfget
+        - provider: aws
+          region: us-west-2
+          subnetId: subnet-4235
+          amiId: ami-gdasg
+    execution:
+      onExecute:
+        - echo "Building images /resouces"
+        - >-
+          echo "Processing image $provider / $region / $subnetId / $amiId" >>
+          ${steplet_id}_task
+        - ls -l packer_installer
+        - packer -v
+        - rm -rf /usr/bin/packer
+        - pushd ./packer_installer
+        - mv ./packer /usr/bin/packer
+        - chmod +x /usr/bin/packer
+        - packer -v
+        - popd
+        - 'set_step_var images "packed:$provider:$region:$subnetId:$amiId"'
+        - get_step_var $step_name images
+        - 'cat ${steplet_id}_task'
+  - name: cleanup_step_fanIn
+    type: FanIn
+    configuration:
+      inputSteps:
+        - name: simple_matrix_test
+    execution:
+      onExecute:
+        - echo "Perform cleanup of resources"
+        - ls -l simple_matrix_step
+        - ls -l simple_matrix_step/packer_installer
+        - pushd ./simple_matrix_step
+        - echo "Getting all the resouces created."
+        - 'find . -type f -exec cat {} \;'
+        - echo "Do cleanup"
+        - popd
+        - echo "Cleanup succesfull"
