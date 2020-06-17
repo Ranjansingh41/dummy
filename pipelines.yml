@@ -1,5 +1,5 @@
 pipelines:    
-  - name: Pipeline
+  - name: Pipeline_test_matrix
     steps:
       - name: Normal_Step
         type: Bash
