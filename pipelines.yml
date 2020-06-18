@@ -3,7 +3,8 @@ pipelines:
     steps:
       - name: Normal_Step
         type: Bash
-#         configuration:
+        configuration:
+          nodePool: u18dynamic
 #           inputResources:
 #             - name: self_repo
         execution:
